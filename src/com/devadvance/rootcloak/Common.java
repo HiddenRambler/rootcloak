@@ -9,8 +9,10 @@ public class Common {
 	public static final String PREFS_KEYWORDS = "CustomizeKeywords";
 	public static final String PREFS_COMMANDS = "CustomizeCommands";
 	public static final String PACKAGE_NAME = "com.devadvance.rootcloak";
+	public static final String LIB_NAME = "HookLibName";
 	public static final String FIRST_RUN_KEY = "IS_FIRST_RUN";
 	public static final String TAG = "RootCloak";
+	public static final String LIB_SO_NAME = "/librootcloak.so";
 	public static final String[] DEFAULT_APPS_LIST = {"com.fde.DomesticDigitalCopy",
 		"com.directv.application.android.go.production",
 		"com.res.bby",

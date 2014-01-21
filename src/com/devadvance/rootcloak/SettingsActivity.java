@@ -41,8 +41,21 @@ public class SettingsActivity extends ListActivity {
 		setListAdapter(adapter);
 
 		sharedPref = getSharedPreferences(Common.PREFS_APPS, MODE_WORLD_READABLE);
+		
+		//todo put this in the proper location
+		setLibPath();
 	}
-
+	
+	void setLibPath() {
+		String libpath = getApplication().getApplicationInfo().nativeLibraryDir + Common.LIB_SO_NAME;
+		Log.d(Common.PACKAGE_NAME, "Setting libpath : " + libpath);
+		Editor editor = sharedPref.edit();
+		editor.remove(Common.PACKAGE_NAME + Common.LIB_NAME);
+		editor.commit();
+		editor.putString(Common.PACKAGE_NAME + Common.LIB_NAME, libpath);
+		editor.commit();
+	}
+	
 	public void onListItemClick(ListView parent, View v, int position, long id) {
 		Intent intent;
 		switch (position) {

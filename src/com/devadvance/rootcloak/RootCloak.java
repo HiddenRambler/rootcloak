@@ -35,12 +35,12 @@ public class RootCloak implements IXposedHookLoadPackage {
 	private Set<String> appSet;
 	private Set<String> keywordSet;
 	private Set<String> commandSet;
+	private String libname;
 	private boolean debugPref;
 	private boolean isFirstRunApps;
 	private boolean isFirstRunKeywords;
 	private boolean isFirstRunCommands;
 
-	
 	private static final String FAKE_COMMAND = "FAKEJUNKCOMMAND";
 	private static final String FAKE_FILE = "FAKEJUNKFILE";
 	private static final String FAKE_PACKAGE = "FAKE.JUNK.PACKAGE";
@@ -50,7 +50,7 @@ public class RootCloak implements IXposedHookLoadPackage {
 //		if (debugPref) {
 //			XposedBridge.log("Found app: " + lpparam.packageName);
 //		}
-
+		
 		if (!(appSet.contains(lpparam.packageName))) { // If the app doesn't match, don't hook into anything, and just return.
 			return;
 		}
@@ -60,12 +60,34 @@ public class RootCloak implements IXposedHookLoadPackage {
 		}
 		
 		// Do all of the hooks
+		initNative(lpparam);
 		initOther(lpparam);
 		initFile(lpparam);
 		initPackageManager(lpparam);
 		initActivityManager(lpparam);
 		initRuntime(lpparam);
 		initProcessBuilder(lpparam);
+	}
+	
+	private void initNative(final LoadPackageParam lpparam) {
+		if (libname == null) {
+			XposedBridge.log("Hook library path not set");
+			return;
+		}
+		
+		XposedHelpers.findAndHookMethod("java.lang.System", lpparam.classLoader, "loadLibrary", String.class, new XC_MethodHook() {
+			boolean hooked = false;
+			@Override
+        	protected void beforeHookedMethod(MethodHookParam param) {
+				if (hooked) return;
+				if (debugPref) {
+					XposedBridge.log("Loading hook library : " + libname);
+				}
+				XposedHelpers.callMethod(Runtime.getRuntime(), "load", libname, lpparam.classLoader);
+				hooked = true;
+			}
+			
+		});
 	}
 	
 	private void initOther(final LoadPackageParam lpparam) {
@@ -438,6 +460,8 @@ public class RootCloak implements IXposedHookLoadPackage {
 		prefCommands.makeWorldReadable();
 		
 		debugPref = prefApps.getBoolean(Common.PACKAGE_NAME + Common.DEBUG_KEY, false); // This enables/disables printing of debug messages
+		
+		libname = prefApps.getString(Common.PACKAGE_NAME + Common.LIB_NAME, null);
 		
 		isFirstRunApps = prefApps.getBoolean(Common.PACKAGE_NAME + Common.FIRST_RUN_KEY, true); // Load boolean that determines if this is the first run since being installed.
 		isFirstRunKeywords = prefKeywords.getBoolean(Common.PACKAGE_NAME + Common.FIRST_RUN_KEY, true); // Load boolean that determines if this is the first run since being installed.
